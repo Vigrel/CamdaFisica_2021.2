@@ -13,6 +13,7 @@
 from enlace import *
 import time
 import numpy as np
+import random
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -22,7 +23,7 @@ import numpy as np
 #use uma das 3 opcoes para atribuir à variável a porta usada
 #serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
 #serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
-serialName = "COM6"                  # Windows(variacao de)
+serialName = "COM"                  # Windows(variacao de)
 
 
 def main():
@@ -34,6 +35,7 @@ def main():
     
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
+        
         #Se chegamos até aqui, a comunicação foi aberta com sucesso. Faça um print para informar.
         
         #aqui você deverá gerar os dados a serem transmitidos. 
@@ -52,10 +54,16 @@ def main():
         #tente entender como o método send funciona!
         #Cuidado! Apenas trasmitimos arrays de bytes! Nao listas!
           
-          
-  
-        txBuffer = #dados
-        com1.sendData(np.asarray(txBuffer))
+        dataList = [0x00FF, 0x00, 0x0F, 0xF0, 0xFF00, 0xFF]
+
+        randNumber = random.randit(10,31)
+
+        print(randNumber)
+        print(dataList[0])
+
+        for i in range(randNumber):
+            txBuffer = random.choice(dataList)
+            com1.sendData(np.asarray(txBuffer))
        
         # A camada enlace possui uma camada inferior, TX possui um método para conhecermos o status da transmissão
         # Tente entender como esse método funciona e o que ele retorna
