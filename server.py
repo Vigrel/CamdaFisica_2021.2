@@ -14,7 +14,7 @@ def main():
 
             rxBuffer, nRx = com1.getData()
             if rxBuffer != b'':
-                size = (nRx-4)/2    # Número de comandos =( Recebido - 4 de referência) / 2 padronização de envio
+                size = (nRx)/2    # Número de comandos =( Recebido - 4 de referência) / 2 padronização de envio
                 break
 
         print("recebeu uma quantia de {} dados. Equivalentes a {}" .format(int(size), rxBuffer))

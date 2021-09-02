@@ -36,8 +36,6 @@ def main():
             dados_enviados.append(txBuffer)
 
 
-        dados_enviados.insert(0, "E000")
-        dados_enviados.append("1100")
         dados_enviados = " ".join(dados_enviados)
         
         
