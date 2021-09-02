@@ -6,8 +6,6 @@
 ####################################################
 
 from enlace import *
-import time
-import numpy as np
 import random
 
 serialName = "COM6"      
@@ -19,18 +17,9 @@ def main():
         
     
         com1.enable()
-        """ 
-        SERVER
-        """
 
-        command = b'\x00' + b'_'
-        command2 = b'\x0F'+ b'_'
-        command3 = b'\x00' + b'\xFF'+ b'_'
-        command4 = b'\xFF' + b'\x00'+ b'_'
-        command5 = b'\xFF'+ b'_'
-        command6 = b'\xF0'+ b'_'
-
-        dataList = [command, command2, command3, command4, command5, command6 ]
+        dataList = [0, 15, 255, 65280,255, 240]
+        dataList = ['0000', '0F00', '00FF', 'FF00', 'FF00', 'F000']
 
         randNumber = random.randint(10,30)
 
@@ -38,25 +27,24 @@ def main():
         print(f"numero aleatorio igual a {randNumber}")
         
         dados_enviados = []
-        # dado_inicial = np.asarray(b'\x22')
-        com1.sendData(b'\x22')
 
-        # dados_enviados.append(dado_inicial)
         print(f'dado inicial enviado')
 
         for i in range(randNumber):
             txBuffer = random.choice(dataList)
-            # dado = np.asarray(txBuffer)
-            com1.sendData(txBuffer)
             print(txBuffer)
-            # dados_enviados.append(dado)
+            dados_enviados.append(txBuffer)
 
 
-        # dado_final = np.asarray(b'\x11')
-        com1.sendData(b'\x11')
-        # dados_enviados.append(dado_final)
+        dados_enviados.insert(0, "E000")
+        dados_enviados.append("1100")
+        dados_enviados = " ".join(dados_enviados)
+        
+        
+        dados_bytes = bytearray.fromhex(dados_enviados)
 
-        # print(f"Meus dados: {dados_enviados}")
+        com1.sendData(dados_bytes)
+        print(f"Meus dados: {dados_bytes}")
        
         # Encerra comunicação
         print("-------------------------")
