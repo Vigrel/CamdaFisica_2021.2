@@ -14,35 +14,28 @@ serialName = "COM6"
 def main():
     try:
         com1 = enlace('COM6')
-        
-    
         com1.enable()
 
-        dataList = [0, 15, 255, 65280,255, 240]
-        dataList = ['00FF', '0000', '000F', '00F0', 'FF00', '00FF']
-
-        randNumber = random.randint(10,30)
-
-  
-        print(f"numero aleatorio igual a {randNumber}")
-        
+        dataDict = {'00FF': 255, '0000': 0, '000F': 15, '00F0':240, 'FF00': 65280, '00FF': 255}
         dados_enviados = []
 
-        print(f'dado inicial enviado')
+        randNumber = random.randint(10,30)
+        print(f"numero aleatorio igual a {randNumber}\n")
 
+        print("Dados enviados:")
         for i in range(randNumber):
-            txBuffer = random.choice(dataList)
-            print(txBuffer)
+            txBuffer = random.choice(list(dataDict.keys()))
             dados_enviados.append(txBuffer)
 
+            byte = txBuffer
+            num = dataDict[byte]
+            print(f'{byte} --> ({num})')
 
         dados_enviados = " ".join(dados_enviados)
-        
-        
         dados_bytes = bytearray.fromhex(dados_enviados)
 
         com1.sendData(dados_bytes)
-        print(f"Meus dados: {dados_bytes}")
+        print(f"\nMeus dados: {dados_bytes}")
        
         # Encerra comunicação
         print("-------------------------")

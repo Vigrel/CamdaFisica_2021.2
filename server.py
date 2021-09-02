@@ -6,8 +6,6 @@ serialName = "COM5"
 def main():
     try:
         com1 = enlace('COM5')
-        
-    
         com1.enable()
 
         while True:
@@ -17,17 +15,16 @@ def main():
                 size = (nRx)/2    # Número de comandos =( Recebido - 4 de referência) / 2 padronização de envio
                 break
 
-        print("recebeu uma quantia de {} dados. Equivalentes a {}" .format(int(size), rxBuffer))
-
-
-        for i in range(0,int(size),2):
+        print("\nDados recebidos:")
+        for i in range(0,int(size)*2,2):
             try:
-                print(rxBuffer[i:i+2])
-                print(int.from_bytes(rxBuffer[i:i+2], "big"))
+                byte = rxBuffer[i:i+2]
+                num = int.from_bytes(rxBuffer[i:i+2], "big")
+                print(f'{byte} --> ({num})')
             except:
                 pass
 
-
+        print("Recebeu uma quantia de {} dados. Equivalentes a {}\n" .format(int(size), rxBuffer))
         com1.disable()
         
     except Exception as erro:
