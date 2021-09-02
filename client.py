@@ -19,7 +19,7 @@ def main():
         com1.enable()
 
         dataList = [0, 15, 255, 65280,255, 240]
-        dataList = ['0000', '0F00', '00FF', 'FF00', 'FF00', 'F000']
+        dataList = ['00FF', '0000', '000F', '00F0', 'FF00', '00FF']
 
         randNumber = random.randint(10,30)
 

@@ -20,6 +20,14 @@ def main():
         print("recebeu uma quantia de {} dados. Equivalentes a {}" .format(int(size), rxBuffer))
 
 
+        for i in range(0,int(size),2):
+            try:
+                print(rxBuffer[i:i+2])
+                print(int.from_bytes(rxBuffer[i:i+2], "big"))
+            except:
+                pass
+
+
         com1.disable()
         
     except Exception as erro:
