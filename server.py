@@ -1,38 +1,27 @@
-from enlace import *
+class Server:
+    def __init__(self) -> None:
+        pass
 
-serialName = "COM5"      
+    def execute_server():
+        pass 
 
+    def read_head():
+        pass 
 
-def main():
-    try:
-        com1 = enlace('COM5')
-        com1.enable()
-
-        while True:
-
-            rxBuffer, nRx = com1.getData()
-            if rxBuffer != b'':
-                size = (nRx)/2    # Número de comandos =( Recebido - 4 de referência) / 2 padronização de envio
-                break
-
-        print("\nDados recebidos:")
-        for i in range(0,int(size)*2,2):
-            try:
-                byte = rxBuffer[i:i+2]
-                num = int.from_bytes(rxBuffer[i:i+2], "big")
-                print(f'{byte} --> ({num})')
-            except:
-                pass
-
-        print("Recebeu uma quantia de {} dados. Equivalentes a {}\n" .format(int(size), rxBuffer))
-        com1.disable()
+    def recive_type1():
+        pass
         
-    except Exception as erro:
-        print("ops! :-\\")
-        print(erro)
-        com1.disable()
+    def recive_type2():
+        pass
         
-
-    #so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
-if __name__ == "__main__":
-    main()
+    def recive_type3():
+        pass
+        
+    def recive_type4():
+        pass
+        
+    def recive_type5():
+        pass
+        
+    def recive_type6():
+        pass
