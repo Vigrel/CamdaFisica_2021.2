@@ -60,17 +60,25 @@ class RX(object):
         self.threadResume()
         return(b)
 
-    def getBuffer(self):
+    def getBuffer(self, nData):
         self.threadPause()
-        b           = self.buffer
-        self.buffer = self.buffer
+        b           = self.buffer[0:nData]
+        self.buffer = self.buffer[nData:]
         self.threadResume()
         return(b)
 
-    def getNData(self):        
+    def getNData(self, size):
+        start = time.time()
 
-        # self.clearBuffer()
-        return self.getBuffer()
+        while(self.getBufferLen() < size):
+            if time.time() - start >= 5: 
+                self.clearBuffer()
+                return b'' 
+                
+            time.sleep(0.05)                 
+        
+        return(self.getBuffer(size))
+
 
     def clearBuffer(self):
         self.buffer = b""
