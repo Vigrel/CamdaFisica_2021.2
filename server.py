@@ -1,5 +1,5 @@
 from enlace import *
-from mirutils import bcolors
+from mirutils import bcolors, send
 
 class Server:
     def __init__(self, client_port) -> None:
@@ -18,23 +18,42 @@ class Server:
 
     def execute_server(self):
         print(bcolors.OKBLUE + "SERVER: " + bcolors.BOLD + 'Esperando mensagem' + bcolors.ENDC)
-        
-        self.ocioso = True
-        while self.ocioso:
-            self.recive_type1()
+        ocioso = True
+        timer = time.time()
+
+        while ocioso:
+            if self.recive_type1(): ocioso = False
+            time.sleep(1)
+            if time.time() - timer > 20:
+                self.conn.disable()
+                exit()
+
         self.send_type2()
         print(bcolors.OKBLUE + "SERVER: " + bcolors.BOLD + 'Na Escuta!\n\n' + bcolors.ENDC )
-
-        self.timer1 = time.time()
-        self.timer2= time.time()
         self.count = 1
 
         while self.count <= int.from_bytes(self.num_packages, 'little'):
-            self.recive_type3()
-            self.send_type4()
-            print(bcolors.OKBLUE + "SERVER: " + bcolors.BOLD + 'payload correto e num pacote esperado correto' + bcolors.ENDC )
-            self.count += 1
+            timer1 = time.time()
+            timer2= time.time()
 
+            while not self.recive_type3():
+                time.sleep(1)
+                
+                if time.time() - timer2 > 20:
+                    ocioso = True 
+                    self.send_type5()
+                        
+                if time.time() - timer1 > 2:
+                    self.send_type4()
+                    timer1 = time.time()
+                    continue
+            
+            if self.pckg_ok:
+                self.send_type4()
+                self.count +=1
+                continue
+            self.send_type6(self.count.to_bytes(1,'little'))
+                
         print(bcolors.OKBLUE + "\n\nSERVER:" + bcolors.BOLD + f' SUCESSO!!!' + bcolors.ENDC)
         self.conn.disable()  
 
@@ -42,62 +61,62 @@ class Server:
             file.write(self.file)
 
     def recive_type1(self):
-        self.data, self.data_size = self.conn.getData(14)
+        data, data_size = self.conn.getData(14)
 
-        if self.data_size !=0:
-            if self.data[2].to_bytes(1, "little") == self.server_address:
-                print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo1 recebida --> {self.data} ')
-                self.ocioso = False
-                self.num_packages = self.data[3].to_bytes(1, "little")
-                if self.data[0] != 1:
-                    print(bcolors.WARNING + "ERROR: " + bcolors.ENDC + 'Mensagem não é do tipo 1')
-                    time.sleep(1)
-                    self.ocioso = True
-
-            else:
-                time.sleep(1)
-                print(bcolors.WARNING + "ERROR: " + bcolors.ENDC + 'Endereço de servidor errado')
+        if data_size !=0:
+            if data[2].to_bytes(1, "little") == self.server_address:
+                print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo1 recebida --> {data} ')
+                self.num_packages = data[3].to_bytes(1, "little")
+                return True
+            print(bcolors.WARNING + "ERROR: " + bcolors.ENDC + 'Endereço de servidor errado')
+            return False
     
     def send_type2(self):
         msgType = b'\x02' 
         type2 = msgType + b'\x01' + self.server_address + self.num_packages + b'\x00'*6 + self.EOP
         self.conn.sendData(type2)
 
-        while (self.conn.tx.getIsBussy()):
-            pass
-
-        print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo2 enviada ---> {bytes(type2)}')
-        self.stage1 = False
+        print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo2 enviada ---> {type2}')
 
     def recive_type3(self):
         while True:
-            self.head, self.head_size = self.conn.getData(10)
+            head, head_size = self.conn.getData(10)
 
-            if self.head_size != 0:
-                payload_size = self.head[5]
-                self.data, _ = self.conn.getData(payload_size + len(self.EOP))
-                print(bcolors.OKCYAN + "_______" + bcolors.ENDC)
-                print(bcolors.OKBLUE + "SERVER: " + bcolors.BOLD + 'pacotes de dados' + bcolors.ENDC )
-                print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Payload recebido ---> {bytes(self.data[0:payload_size])}')
-                self.file += self.data[0:payload_size]
-                break
+            if head_size != 0:
+                payload_size = head[5]
+                data, _ = self.conn.getData(payload_size + len(self.EOP))
 
+                if head[4] != self.count or data[payload_size:] != self.EOP:
+                    print(bcolors.WARNING + "SERVER: " + bcolors.BOLD + 'pacote ou tamanho errado' + bcolors.ENDC )
+                    self.pckg_ok = False
+                else:
+                    print(bcolors.OKCYAN + "_______" + bcolors.ENDC)
+                    print(bcolors.OKBLUE + "SERVER: " + bcolors.BOLD + 'pacotes de dados' + bcolors.ENDC )
+                    print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Payload recebido ---> {data[0:payload_size]}')
+                    self.file += data[0:payload_size]
+                    self.pckg_ok = True
+                return True
+
+            return False
+            
     def send_type4(self):
         msgType = b'\x04' 
         type4 = msgType + b'\x01' + self.server_address + self.num_packages + b'\x00'*3 + self.count.to_bytes(1,'little') + b'\x00'*2 + self.EOP
         self.conn.sendData(type4)
 
-        while (self.conn.tx.getIsBussy()):
-            pass
+        print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo4 enviada ---> {type4}')
 
-        print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo4 enviada ---> {bytes(type4)}')
+    def send_type5(self):
+        msgType = b'\x05' 
+        type5 = msgType + b'\x00'*9 + self.EOP
+        self.conn.sendData(type5)
+        print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo5 enviada ---> {type5}')
+        print(bcolors.WARNING + "SERVER: " + f':-(' + bcolors.ENDC)
+        self.conn.disable() 
+        exit()
 
-
-
-
-
-
-
-
-
-    
+    def send_type6(self, right_package):
+        msgType = b'\x06' 
+        type6 = msgType + b'\x00'*5 + right_package + b'\x00'*3 + self.EOP
+        self.conn.sendData(type6)
+        print(bcolors.WARNING + "SERVER: " + bcolors.ENDC + f'Mensagem tipo6 enviada ---> {type6}')
