@@ -50,23 +50,22 @@ class Server:
                     self.send_type4()
                     timer1 = time.time()
                     continue
-            
+                
             if self.pckg_ok:
                 self.send_type4()
                 self.count +=1
                 continue
-            self.send_type6(self.count.to_bytes(1,'little'))
-                
+
         print(bcolors.OKBLUE + "\n\nSERVER:" + bcolors.BOLD + f' SUCESSO!!!' + bcolors.ENDC)
+        
+        with open("log/Client2.txt", "w") as file:
+            for i in self.log_file:
+                file.write(i)
 
         self.conn.disable()  
 
         with open("img_received.png", "wb") as file:
             file.write(self.file)
-
-        with open("log/Server5.txt", "w") as file:
-            for i in self.log_file:
-                file.write(i)
 
     def recive_type1(self):
         data, data_size = self.conn.getData(14)
@@ -104,9 +103,17 @@ class Server:
                 if head[4] != self.count or data[payload_size:] != self.EOP:
                     print(bcolors.WARNING + "SERVER: " + bcolors.BOLD + 'pacote ou tamanho errado' + bcolors.ENDC )
                     self.pckg_ok = False
+                    self.send_type6(self.count.to_bytes(1,'little'))
+                    time.sleep(5)
+                    return True
+    
                 if binascii.crc_hqx(data[0:payload_size], 0) != crc:
                     print(bcolors.WARNING + "SERVER: " + bcolors.BOLD + 'CRC incorreto' + bcolors.ENDC )
                     self.pckg_ok = False
+                    self.send_type6(self.count.to_bytes(1,'little'))
+                    time.sleep(5)
+                    return True
+
                 else:
                     print(bcolors.OKCYAN + "_______" + bcolors.ENDC)
                     print(bcolors.OKBLUE + "SERVER: " + bcolors.BOLD + 'pacotes de dados' + bcolors.ENDC )
@@ -142,5 +149,6 @@ class Server:
         self.log_file.append(now)
         msgType = b'\x06' 
         type6 = msgType + b'\x00'*5 + right_package + b'\x00'*3 + self.EOP
+        print(type6)
         self.conn.sendData(type6)
         print(bcolors.WARNING + "SERVER: " + bcolors.ENDC + f'Mensagem tipo6 enviada ---> {type6}')

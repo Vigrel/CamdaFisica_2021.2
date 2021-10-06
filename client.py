@@ -9,7 +9,7 @@ class Client:
         self.server_address = b'\x11'
 
         self.log_file = []
-        self.test_phase = False
+        self.test_phase = True
 
         self.serial_name = client_port
         self.conn = enlace(self.serial_name)
@@ -56,13 +56,17 @@ class Client:
                     print(bcolors.WARNING + "\n\nCLIENT:" + bcolors.BOLD + f'time out' + bcolors.ENDC)
                     self.send_type5()
 
-                while not self.recive_type6(): pass
+                try:
+                    if self.data_type4[0] == 6:
+                        self.recive_type6(self.data_type4)
+                except:
+                    pass
 
             self.count += 1
 
         print(bcolors.HEADER + "\n\nCLIENT:" + bcolors.BOLD + f' SUCESSO!!!' + bcolors.ENDC)
 
-        with open("log/Client5.txt", "w") as file:
+        with open("log/Client2.txt", "w") as file:
             for i in self.log_file:
                 file.write(i)
 
@@ -122,6 +126,7 @@ class Client:
 
     def recive_type4(self):
         data, data_size = self.conn.getData(14)
+        self.data_type4 = data
         if data_size !=0:
             now = '\n' + str(datetime.now()) + ' || receb || 4 || 14'
             self.log_file.append(now)
@@ -143,12 +148,9 @@ class Client:
         self.conn.disable() 
         exit()
     
-    def recive_type6(self):
-        data, data_size = self.conn.getData(14)
-        if data_size !=0:
-            now = '\n' + str(datetime.now()) + ' || receb || 6 || 14'
-            self.log_file.append(now)
-            print(bcolors.HEADER + "CLIENT:" + bcolors.BOLD + f'pacote errado' + bcolors.ENDC)
-            self.count = data[7]
-            return True
-        return False
+    def recive_type6(self, head):
+        now = '\n' + str(datetime.now()) + ' || receb || 6 || 14'
+        self.log_file.append(now)
+        print(bcolors.HEADER + "CLIENT:" + bcolors.BOLD + f'pacote errado' + bcolors.ENDC)
+        print(bcolors.WARNING + "CLIENT: " + f'Mensagem tipo6 recebia ---> {head}' + bcolors.ENDC)
+        self.count = head[6]
