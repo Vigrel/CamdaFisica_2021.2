@@ -1,3 +1,4 @@
+import binascii
 from enlace import *
 from mirutils import bcolors
 from datetime import datetime
@@ -5,7 +6,6 @@ from datetime import datetime
 class Server:
     def __init__(self, client_port) -> None:
         self.EOP = b'\xFF\xAA\xFF\xAA'
-        self.CRC = b'\x00\x00'
         self.server_address = b'\x11'
 
         self.log_file = []
@@ -58,12 +58,13 @@ class Server:
             self.send_type6(self.count.to_bytes(1,'little'))
                 
         print(bcolors.OKBLUE + "\n\nSERVER:" + bcolors.BOLD + f' SUCESSO!!!' + bcolors.ENDC)
+
         self.conn.disable()  
 
         with open("img_received.png", "wb") as file:
             file.write(self.file)
 
-        with open("log/Server3.txt", "w") as file:
+        with open("log/Server5.txt", "w") as file:
             for i in self.log_file:
                 file.write(i)
 
@@ -95,12 +96,16 @@ class Server:
 
             if head_size != 0:
                 payload_size = head[5]
-                now = '\n' + str(datetime.now()) + f' || receb || 3 || {payload_size} || {self.count} || {self.num_packages} || {self.CRC}'
+                crc = int.from_bytes(head[8:10], 'little')
+                now = '\n' + str(datetime.now()) + f' || receb || 3 || {payload_size} || {self.count} || {self.num_packages} || {crc}'
                 self.log_file.append(now) 
                 data, _ = self.conn.getData(payload_size + len(self.EOP))
 
                 if head[4] != self.count or data[payload_size:] != self.EOP:
                     print(bcolors.WARNING + "SERVER: " + bcolors.BOLD + 'pacote ou tamanho errado' + bcolors.ENDC )
+                    self.pckg_ok = False
+                if binascii.crc_hqx(data[0:payload_size], 0) != crc:
+                    print(bcolors.WARNING + "SERVER: " + bcolors.BOLD + 'CRC incorreto' + bcolors.ENDC )
                     self.pckg_ok = False
                 else:
                     print(bcolors.OKCYAN + "_______" + bcolors.ENDC)
@@ -129,11 +134,6 @@ class Server:
         self.conn.sendData(type5)
         print(bcolors.OKBLUE + "SERVER: " + bcolors.ENDC + f'Mensagem tipo5 enviada ---> {type5}')
         print(bcolors.WARNING + "SERVER: " + f':-(' + bcolors.ENDC)
-        
-        with open("log/Server4.txt", "w") as file:
-            for i in self.log_file:
-                file.write(i)
-        
         self.conn.disable() 
         exit()
 

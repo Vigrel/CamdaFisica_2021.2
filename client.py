@@ -1,3 +1,4 @@
+import binascii
 from enlace import *
 from mirutils import bcolors
 from datetime import datetime
@@ -5,7 +6,6 @@ from datetime import datetime
 class Client:
     def __init__(self, client_port) -> None:
         self.EOP = b'\xFF\xAA\xFF\xAA'
-        self.CRC = b'\x00\x00'
         self.server_address = b'\x11'
 
         self.log_file = []
@@ -31,9 +31,6 @@ class Client:
         while not self.inicia:
             self.send_type1(fragments_size) 
             if time.time() - timer> 20:
-                with open("log/Client3.txt", "w") as file:
-                    for i in self.log_file:
-                        file.write(i)
                 self.conn.disable()
                 exit()
             print(bcolors.HEADER + "CLIENT: " + bcolors.BOLD + 'Quero Falar com você' + bcolors.ENDC )
@@ -65,6 +62,10 @@ class Client:
 
         print(bcolors.HEADER + "\n\nCLIENT:" + bcolors.BOLD + f' SUCESSO!!!' + bcolors.ENDC)
 
+        with open("log/Client5.txt", "w") as file:
+            for i in self.log_file:
+                file.write(i)
+
         self.conn.disable()
         
     def send_type1(self, fragments_size):
@@ -73,7 +74,7 @@ class Client:
         msg_type = b'\x01'
         num_packages = fragments_size.to_bytes(1,'little') 
         package_id = b'\x00'
-        head = msg_type + b'\x01' + self.server_address + num_packages + package_id + b'\x00\x00\x00' + self.CRC
+        head = msg_type + b'\x01' + self.server_address + num_packages + package_id + b'\x00\x00\x00' + b'\x00\x00'
         type1 = head + self.EOP
 
         self.conn.rx.clearBuffer()
@@ -102,14 +103,15 @@ class Client:
         payload = fragments[self.count - 1]
         payload_size = (len(payload)).to_bytes(1,'little')
         last_package = (self.count - 1).to_bytes(1,'little')
-        head = msg_type + sensor_id + self.server_address + num_packages + package_id + payload_size + error_package + last_package + self.CRC
+        crc = (binascii.crc_hqx(payload, 0)).to_bytes(2, 'little')
+        head = msg_type + sensor_id + self.server_address + num_packages + package_id + payload_size + error_package + last_package + crc
 
-        now = '\n' + str(datetime.now()) + f' || envio || 3 || {len(payload)} || {self.count} || {num_packages} || {self.CRC}'
+        now = '\n' + str(datetime.now()) + f' || envio || 3 || {len(payload)} || {self.count} || {num_packages} || {crc}'
         self.log_file.append(now)
 
         if self.test_phase and self.count == 2:
             self.test_phase = False
-            head = msg_type + sensor_id + self.server_address + num_packages + (4).to_bytes(1,'little') + payload_size + error_package + last_package + self.CRC
+            head = msg_type + sensor_id + self.server_address + num_packages + (4).to_bytes(1,'little') + payload_size + error_package + last_package + crc
                 
         type3 = head + payload + self.EOP
 
@@ -134,9 +136,7 @@ class Client:
         msgType = b'\x05' 
         type5 = msgType + b'\x00'*9 + self.EOP
         self.conn.sendData(type5)
-        with open("log/Client4.txt", "w") as file:
-            for i in self.log_file:
-                file.write(i)
+
         print(bcolors.HEADER + "CLIENT: " + bcolors.ENDC + f'Mensagem tipo5 enviada ---> {type5}')
         print(bcolors.WARNING + "CLIENT: " + f'timed out' + bcolors.ENDC)
         print(bcolors.WARNING + "CLIENT: " + f':-(' + bcolors.ENDC)
