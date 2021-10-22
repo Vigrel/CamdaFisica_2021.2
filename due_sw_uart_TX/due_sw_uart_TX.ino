@@ -1,5 +1,6 @@
 #include "sw_uart.h"
 
+
 due_sw_uart uart;
 
 void setup()
@@ -10,25 +11,11 @@ void setup()
 
 void loop()
 {
-  receive_byte();
-  delay(5);
+  write_byte();
 }
 
-void receive_byte()
+void write_byte()
 {
-  char data;
-  int code = sw_uart_receive_byte(&uart, &data);
-  if (code == SW_UART_SUCCESS)
-  {
-    Serial.print(data);
-  }
-  else if (code == SW_UART_ERROR_PARITY)
-  {
-    Serial.println("\nPARITY ERROR");
-  }
-  else
-  {
-    Serial.println("\nOTHER");
-    Serial.print(code);
-  }
+  sw_uart_write_byte(&uart,'v');
+  delay(2500);
 }
