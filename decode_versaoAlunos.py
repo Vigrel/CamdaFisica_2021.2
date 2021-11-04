@@ -84,19 +84,26 @@ def main():
     #voce deve tambem evitar que dois picos proximos sejam identificados, pois pequenas variacoes na
     #frequencia do sinal podem gerar mais de um pico, e na verdade tempos apenas 1.
    
-    index = peakutils.indexes(yf, thres=0.3, min_dist=50)
+    index = peakutils.indexes(yf, thres=0.5, min_dist=50)
     print(index)
-    
-    # printe os picos encontrados! 
-    numdigitadoY, numdigitadoX = xf[index[0]], xf[index[1]]
-    print(f'seu numero é {list(NUMBER_FREQ.keys())[list(NUMBER_FREQ.values()).index((round(numdigitadoX), round(numdigitadoY)))]}') 
 
-    #encontre na tabela duas frequencias proximas às frequencias de pico encontradas e descubra qual foi a tecla
-    #print a tecla.
+    HIGH = [1209, 1336, 1477]
+    LOW = [697, 770, 852, 941]
+
+    freq_index = [round(xf[i]) for i in index]
+    print(freq_index)
     
-  
-    # ## Exibe gráficos 
+    for freq1 in HIGH:
+        if freq1 in freq_index:
+            for freq2 in LOW:
+                if freq2 in freq_index:
+                    print(f'seu numero é {list(NUMBER_FREQ.keys())[list(NUMBER_FREQ.values()).index((freq1, freq2))]}') 
+                    exit()
+    
+    # numdigitadoY, numdigitadoX = xf[index[0]], xf[index[1]]
     plt.show()
+    print('Você não digitou nada')
+    # ## Exibe gráficos 
 
 if __name__ == "__main__":
     main()
