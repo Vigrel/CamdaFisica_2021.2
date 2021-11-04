@@ -84,12 +84,13 @@ def main():
     #voce deve tambem evitar que dois picos proximos sejam identificados, pois pequenas variacoes na
     #frequencia do sinal podem gerar mais de um pico, e na verdade tempos apenas 1.
    
-    index = peakutils.indexes(yf, thres=0.5, min_dist=50)
+    index = peakutils.indexes(yf, thres=0.1, min_dist=50)
     print(index)
 
     HIGH = [1209, 1336, 1477]
     LOW = [697, 770, 852, 941]
 
+    print(index)
     freq_index = [round(xf[i]) for i in index]
     print(freq_index)
     
