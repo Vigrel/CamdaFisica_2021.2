@@ -19,7 +19,7 @@ tempo = len(arquivo) / taxa
 
 portadora_t, portadora_y = signal.generateSin(14e3, 1, tempo, taxa)
 
-sinal_demodulado =  arquivo / portadora_y
+sinal_demodulado =  [x / y if y else 0 for x,y in zip(arquivo, portadora_y)]
 
 arquivo_filtrado = LPF(sinal_demodulado, 4e3, taxa)
 
