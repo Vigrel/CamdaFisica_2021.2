@@ -1,4 +1,3 @@
-
 import numpy as np
 import sounddevice as sd
 import matplotlib.pyplot as plt
@@ -16,7 +15,7 @@ class signalMeu:
 
     def generateSin(self, freq, amplitude, time, fs):
         n = time*fs
-        x = np.linspace(0.0, time, n)
+        x = np.linspace(0.0, time, int(n))
         s = amplitude*np.sin(freq*x*2*np.pi)
         return (x, s)
 
@@ -31,8 +30,9 @@ class signalMeu:
 
     def plotFFT(self, signal, fs):
         x,y = self.calcFFT(signal, fs)
-        limites = [500,2000,-1000,17500]
+        limites = [1e3,22e3,-1000, 2e3]
         plt.axis(limites)
+        plt.grid(True)
         plt.plot(x, np.abs(y))
         plt.title('Fourier')
         plt.show()
